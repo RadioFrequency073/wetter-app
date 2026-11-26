@@ -27,6 +27,8 @@ import weathercodes as wc
 import config
 from charts import HourlyChart
 from settings_dialog import SettingsDialog
+import widgets
+import weathericons as icons
 from widgets import CurrentCard, DailyOverview, ExtrasCard, Card
 
 REFRESH = 60_000  # ms — UI-Takt für "Wann zuletzt aktualisiert"-Anzeige
@@ -124,11 +126,13 @@ class MainWindow(QMainWindow):
         self.place_combo.setVisible(False)
         self.place_combo.activated.connect(self._on_place_chosen)
 
-        self.settings_btn = QPushButton("⚙ Einstellungen")
+        self.settings_btn = QPushButton("Einstellungen")
         self.settings_btn.setFixedHeight(34)
         self.settings_btn.clicked.connect(self.open_settings)
 
-        header.addWidget(QLabel("📍"), 0, Qt.AlignVCenter)
+        pin = QLabel()
+        pin.setPixmap(icons.ui_pixmap("place", 22))
+        header.addWidget(pin, 0, Qt.AlignVCenter)
         header.addWidget(self.search_box)
         header.addWidget(self.place_combo)
         header.addStretch(1)
@@ -223,19 +227,23 @@ class MainWindow(QMainWindow):
         daily = data.get("daily", {})
 
         if self.cfg["blocks"].get("current", True):
-            self.current_card.update_data(cur, data.get("timezone", "auto"))
+            self.current_card.update_data(cur, self.cfg)
         if self.cfg["blocks"].get("hourly_chart", True):
             labels, series = api.next_hours(hourly, int(self.cfg["hourly_hours"]))
-            self.hourly_chart.update_data(labels, series)
+            self.hourly_chart.update_data(
+                labels, series, widgets.temp_unit(self.cfg)
+            )
         if self.cfg["blocks"].get("daily_overview", True):
-            self.daily_overview.update_data(daily, int(self.cfg["forecast_days"]))
+            self.daily_overview.update_data(
+                daily, int(self.cfg["forecast_days"]), self.cfg
+            )
         if self.cfg["blocks"].get("extras", True):
             self.extras_card.update_data(
                 cur, hourly, daily, data.get("utc_offset_seconds")
             )
 
     def _on_error(self, message):
-        self.updated_label.setText("⚠ Abruf fehlgeschlagen")
+        self.updated_label.setText("Abruf fehlgeschlagen")
         # Bewusst kein blockierendes Dialogfeld bei laufender App: Der
         # nächste Timer-Abruf versucht es erneut.
         self.statusBar().showMessage(message, 10_000)

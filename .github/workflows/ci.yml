@@ -1,0 +1,36 @@
+# CI: kompiliert alle Module und führt einen Headless-Smoke-Test aus
+# (Symbole rendern, Widgets mit Beispieldaten füllen, Chart zeichnen).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Systembibliotheken für Qt-Headless
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libegl1 libxkbcommon0 libdbus-1-3 libfontconfig1
+
+      - name: Python-Pakete
+        run: pip install -r requirements.txt
+
+      - name: Compile-Check
+        run: |
+          python -m py_compile \
+            main.py bootstrap.py api.py widgets.py charts.py \
+            settings_dialog.py weathercodes.py weathericons.py config.py
+
+      - name: Headless-Smoke-Test
+        run: python tests/smoke_test.py

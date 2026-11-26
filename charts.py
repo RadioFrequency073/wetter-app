@@ -27,7 +27,7 @@ class HourlyChart(Card):
         self.canvas.setMinimumHeight(220)
         self.layout_.addWidget(self.canvas, 1)
 
-    def update_data(self, labels, series):
+    def update_data(self, labels, series, temp_unit="°C"):
         self.fig.clear()
         temps = series.get("temperature_2m", [])
         precip = series.get("precipitation", [])
@@ -55,7 +55,7 @@ class HourlyChart(Card):
         # Temperatur-Linie + Beschriftung jeden Punkts
         ax.plot(range(len(temps)), temps, color=BLUE, linewidth=2.2,
                 marker="o", markersize=3.5)
-        ax.set_ylabel("°C", color=BLUE, fontsize=9)
+        ax.set_ylabel(temp_unit, color=BLUE, fontsize=9)
         ax.tick_params(axis="y", colors=BLUE, labelsize=8)
         ymin, ymax = min(temps), max(temps)
         pad = max((ymax - ymin) * 0.25, 1.5)
