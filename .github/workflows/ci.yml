@@ -34,3 +34,29 @@ jobs:
 
       - name: Headless-Smoke-Test
         run: python tests/smoke_test.py
+
+  # Eigener, toleranter Job gegen die echte Open-Meteo-API: Der freie
+  # Dienst ist nicht verfügbarkeitsgarantiert, ein Ausfall blockiert den
+  # Merge nicht, fällt aber im PR sichtbar auf.
+  api-live:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Systembibliotheken für Qt-Headless
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1 libegl1 libxkbcommon0 libdbus-1-3 libfontconfig1
+
+      - name: Python-Pakete
+        run: pip install -r requirements.txt
+
+      - name: Live-Abruf Open-Meteo
+        run: python tests/api_live_test.py
