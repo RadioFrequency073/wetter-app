@@ -1,23 +1,36 @@
 """Einstellungsdialog: Ort, Aktualisierungsintervall, Tage/Stunden,
-Einheiten und Sichtbarkeit der Inhaltsblöcke."""
+Einheiten, Symbolstil/-größe, Sichtbarkeit der Inhaltsblöcke und Vollbild."""
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QFormLayout, QSpinBox, QCheckBox,
     QComboBox, QDialogButtonBox, QLabel, QGroupBox,
 )
 
+import widgets
+
+
+def _combo(options, current):
+    """ComboBox mit (key, anzeigetext)-Paaren, vorausgewählt auf `current`."""
+    cb = QComboBox()
+    for key, label in options:
+        cb.addItem(label, key)
+        if key == current:
+            cb.setCurrentIndex(cb.count() - 1)
+    return cb
+
 
 class SettingsDialog(QDialog):
     def __init__(self, parent, cfg):
         super().__init__(parent)
         self.setWindowTitle("Einstellungen")
-        self.setMinimumWidth(420)
+        self.setMinimumWidth(460)
         self.cfg_snapshot = {
             "location": dict(cfg["location"]),
             "refresh_minutes": int(cfg["refresh_minutes"]),
             "forecast_days": int(cfg["forecast_days"]),
             "hourly_hours": int(cfg["hourly_hours"]),
             "units": dict(cfg["units"]),
+            "icons": dict(cfg.get("icons", {})),
             "blocks": dict(cfg["blocks"]),
             "fullscreen": bool(cfg.get("fullscreen", True)),
         }
@@ -52,11 +65,32 @@ class SettingsDialog(QDialog):
         form.addRow(QLabel("Stunden im Chart:"), self.hours)
 
         # --- Einheiten ---
-        self.units = QComboBox()
-        self.units.addItems(["celsius", "fahrenheit"])
-        current = cfg["units"].get("temperature", "celsius")
-        self.units.setCurrentText("fahrenheit" if current == "fahrenheit" else "celsius")
+        self.units = _combo(
+            [("celsius", "Celsius (°C)"), ("fahrenheit", "Fahrenheit (°F)")],
+            cfg["units"].get("temperature", "celsius"),
+        )
         form.addRow(QLabel("Temperatureinheit:"), self.units)
+
+        self.wind_units = _combo(
+            [("kmh", "Kilometer pro Stunde (km/h)"), ("ms", "Meter pro Sekunde (m/s)"),
+             ("mph", "Meilen pro Stunde (mph)"), ("kn", "Knoten (kn)")],
+            cfg["units"].get("wind", "kmh"),
+        )
+        form.addRow(QLabel("Windeinheit:"), self.wind_units)
+
+        # --- Symbole ---
+        self.icon_style = _combo(
+            [("drawn", "Gezeichnete Symbole (immer sichtbar)"),
+             ("emoji", "Emoji (benötigt Emoji-Font)")],
+            cfg.get("icons", {}).get("style", "drawn"),
+        )
+        form.addRow(QLabel("Symbolstil:"), self.icon_style)
+
+        self.icon_size = _combo(
+            [("klein", "Klein"), ("mittel", "Mittel"), ("groß", "Groß")],
+            cfg.get("icons", {}).get("size", "mittel"),
+        )
+        form.addRow(QLabel("Symbolgröße (Hauptanzeige):"), self.icon_size)
 
         root.addLayout(form)
 
@@ -66,8 +100,8 @@ class SettingsDialog(QDialog):
         self.block_checks = {}
         labels = {
             "current": "Aktuell-Karte",
-            "hourly_chart": "Stunden-Chart (24 h)",
-            "daily_overview": "16-Tage-Übersicht",
+            "hourly_chart": "Stunden-Chart",
+            "daily_overview": "Tagesübersicht",
             "extras": "Details (UV, Luftdruck, Sonne …)",
         }
         for key, label in labels.items():
@@ -98,7 +132,12 @@ class SettingsDialog(QDialog):
         cfg["refresh_minutes"] = self.minutes.value()
         cfg["forecast_days"] = self.days.value()
         cfg["hourly_hours"] = self.hours.value()
-        cfg["units"]["temperature"] = self.units.currentText()
+        cfg["units"]["temperature"] = self.units.currentData()
+        cfg["units"]["wind"] = self.wind_units.currentData()
+        cfg["icons"] = {
+            "style": self.icon_style.currentData(),
+            "size": self.icon_size.currentData(),
+        }
         cfg["fullscreen"] = self.fullscreen_cb.isChecked()
         cfg["blocks"] = {k: cb.isChecked() for k, cb in self.block_checks.items()}
         return cfg

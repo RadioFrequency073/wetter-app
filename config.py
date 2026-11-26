@@ -18,6 +18,10 @@ DEFAULTS = {
     "forecast_days": 16,          # 1-16, wirft UI-Panel unabhängig von der Abrufmenge
     "hourly_hours": 24,           # Stunden, die das Stunden-Chart zeigt
     "units": {"temperature": "celsius", "wind": "kmh"},
+    "icons": {                    # Stil der Wetter-Symbole
+        "style": "drawn",          # drawn (gezeichnet) | emoji (Font nötig)
+        "size": "mittel",           # klein | mittel | groß
+    },
     "blocks": {                   # welche Inhaltsblöcke sichtbar sind
         "current": True,
         "hourly_chart": True,

@@ -6,19 +6,25 @@ einem HDMI-Monitor/TV anzeigt.
 
 ## Funktionen
 
-- **Aktuell-Karte**: Temperatur, gefühlte Temperatur, Wetter-Icon, Wind,
-  Luftfeuchte, Niederschlag der letzten Stunde
+- **Aktuell-Karte**: Ortsname, Temperatur, gefühlte Temperatur,
+  großes Wetter-Symbol, Wind, Luftfeuchte, Niederschlag der letzten Stunde
 - **Stunden-Chart**: Temperaturverlauf + Regensummen der nächsten 24 Stunden
   (6-48 h einstellbar), als Matplotlib-Diagramm
-- **16-Tage-Übersicht**: Tabelle mit Wettercode, Min/Max, Regensumme,
-  Regenwahrscheinlichkeit, Wind, UV-Index
+- **Tagesübersicht (1-16 Tage)**: Tabelle mit Wettersymbol, Min/Max,
+  Regensumme, Regenwahrscheinlichkeit, Wind, UV-Index
 - **Details-Karte**: UV-Index (jetzt + Tagesmax), Luftdruck,
   Sonnenauf-/untergang, Böen
 - **Ortssuche** über die Open-Meteo Geocoding API (Suchfeld oben,
   Vorschläge beim Tippen, Auswahl speichert den Ort)
+- **Gezeichnete Wetter-Symbole**: Die Symbole werden als Vektorgrafik per
+  QPainter selbst gezeichnet — damit sind sie auf jedem System sichtbar,
+  auch wenn (wie auf schlankem Raspberry Pi OS) kein Emoji-Font installiert
+  ist. Tag-/Nacht-Varianten inklusive. Wer Emojis bevorzugt, schaltet im
+  Einstellungsdialog auf den Emoji-Stil zurück.
 - **Einstellungsdialog**: Aktualisierungsintervall, Anzahl Tage (1-16) und
-  Stunden, Temperatureinheit (°C/°F), Ein-/Ausschalten jedes Inhaltsblocks,
-  Vollbild beim Start
+  Stunden (6-48), Temperatureinheit (°C/°F), Windeinheit (km/h, m/s, mph,
+  kn), Symbolstil (gezeichnet/Emoji) und Symbolgröße, Ein-/Ausschalten jedes
+  Inhaltsblocks, Vollbild beim Start
 - Datenabruf im Hintergrund-Thread, Auto-Refresh per Timer,
   Wiederholung bei Netzwerkfehlern
 - Vollbild per **F11** oder **Esc** umschaltbar
@@ -115,6 +121,7 @@ Vorab-Beispiel:
   "forecast_days": 16,
   "hourly_hours": 24,
   "units": { "temperature": "celsius", "wind": "kmh" },
+  "icons": { "style": "drawn", "size": "mittel" },
   "blocks": { "current": true, "hourly_chart": true, "daily_overview": true, "extras": true },
   "fullscreen": true
 }
@@ -130,7 +137,8 @@ wetter-app/
   widgets.py           Aktuell-Karte, 16-Tage-Tabelle, Details-Karte
   charts.py            Matplotlib-Stunden-Chart
   settings_dialog.py   Einstellungsdialog
-  weathercodes.py      WMO-Codes -> deutsche Texte + Icons
+  weathercodes.py      WMO-Codes -> deutsche Texte
+  weathericons.py      gezeichnete Wetter-/UI-Symbole (QPainter, keine Bilder)
   config.py            Laden/Speichern der Einstellungen
   requirements.txt
 ```
